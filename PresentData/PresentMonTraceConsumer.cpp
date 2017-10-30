@@ -106,6 +106,26 @@ void HandleDXGIEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     }
 }
 
+void HandleD3D11Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
+{
+    auto const& hdr = pEventRecord->EventHeader;
+    switch (hdr.EventDescriptor.Id)
+    {
+    case 0:break;
+    }
+    (pmConsumer);
+}
+
+void HandleD3D12Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
+{
+    auto const& hdr = pEventRecord->EventHeader;
+    switch (hdr.EventDescriptor.Id)
+    {
+    case 0:break;
+    }
+    (pmConsumer);
+}
+
 void PMTraceConsumer::HandleDxgkBlt(DxgkBltEventArgs& args)
 {
     auto eventIter = FindOrCreatePresent(*args.pEventHeader);

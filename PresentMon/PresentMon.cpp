@@ -458,7 +458,9 @@ void EtwConsumingThread(const CommandLineArgs& args)
 
     TraceSession session;
 
-    session.AddProviderAndHandler(DXGI_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleDXGIEvent, &pmConsumer);
+    session.AddProviderAndHandler(DXGI_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn)&HandleDXGIEvent, &pmConsumer);
+    session.AddProviderAndHandler(D3D11_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn)&HandleD3D11Event, &pmConsumer);
+    session.AddProviderAndHandler(D3D12_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleD3D12Event, &pmConsumer);
     session.AddProviderAndHandler(D3D9_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleD3D9Event, &pmConsumer);
     if (args.mVerbosity != Verbosity::Simple) {
         session.AddProviderAndHandler(DXGKRNL_PROVIDER_GUID,   TRACE_LEVEL_INFORMATION, 1,      0, (EventHandlerFn) &HandleDXGKEvent,   &pmConsumer);

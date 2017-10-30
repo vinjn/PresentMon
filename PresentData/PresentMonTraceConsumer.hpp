@@ -33,12 +33,16 @@ SOFTWARE.
 #include <evntcons.h> // must include after windows.h
 
 struct __declspec(uuid("{CA11C036-0102-4A2D-A6AD-F03CFED5D3C9}")) DXGI_PROVIDER_GUID_HOLDER;
+struct __declspec(uuid("{db6f6ddb-ac77-4e88-8253-819df9bbf140}")) D3D11_PROVIDER_GUID_HOLDER;
+struct __declspec(uuid("{5d8087dd-3a9b-4f56-90df-49196cdc4f11}")) D3D12_PROVIDER_GUID_HOLDER;
 struct __declspec(uuid("{802ec45a-1e99-4b83-9920-87c98277ba9d}")) DXGKRNL_PROVIDER_GUID_HOLDER;
 struct __declspec(uuid("{8c416c79-d49b-4f01-a467-e56d3aa8234c}")) WIN32K_PROVIDER_GUID_HOLDER;
 struct __declspec(uuid("{9e9bba3c-2e38-40cb-99f4-9e8281425164}")) DWM_PROVIDER_GUID_HOLDER;
 struct __declspec(uuid("{783ACA0A-790E-4d7f-8451-AA850511C6B9}")) D3D9_PROVIDER_GUID_HOLDER;
 struct __declspec(uuid("{3d6fa8d0-fe05-11d0-9dda-00c04fd7ba7c}")) NT_PROCESS_EVENT_GUID_HOLDER;
 static const auto DXGI_PROVIDER_GUID = __uuidof(DXGI_PROVIDER_GUID_HOLDER);
+static const auto D3D11_PROVIDER_GUID = __uuidof(D3D11_PROVIDER_GUID_HOLDER);
+static const auto D3D12_PROVIDER_GUID = __uuidof(D3D12_PROVIDER_GUID_HOLDER);
 static const auto DXGKRNL_PROVIDER_GUID = __uuidof(DXGKRNL_PROVIDER_GUID_HOLDER);
 static const auto WIN32K_PROVIDER_GUID = __uuidof(WIN32K_PROVIDER_GUID_HOLDER);
 static const auto DWM_PROVIDER_GUID = __uuidof(DWM_PROVIDER_GUID_HOLDER);
@@ -272,6 +276,8 @@ struct PMTraceConsumer
 
 void HandleNTProcessEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleDXGIEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
+void HandleD3D11Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
+void HandleD3D12Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleD3D9Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleWin32kEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
