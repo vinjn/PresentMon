@@ -142,9 +142,9 @@ void PrintEventInformation(FILE* fp, EVENT_RECORD* pEventRecord)
                 (wchar_t*)(bufferAddr + info->ProviderNameOffset),
                 (wchar_t*)(bufferAddr + info->TaskNameOffset),
                 (wchar_t*)(bufferAddr + info->OpcodeNameOffset));
-          //printf("Keywords = %ls\n\n", (wchar_t*)(bufferAddr + info->KeywordsNameOffset));
-          //printf("TopLevelPropertyCount = %u\n", info->TopLevelPropertyCount);
-          //printf("PropertyCount = %u\n", info->PropertyCount);
+          //fprintf(fp, "Keywords = %ls\n\n", (wchar_t*)(bufferAddr + info->KeywordsNameOffset));
+          //fprintf(fp, "TopLevelPropertyCount = %u\n", info->TopLevelPropertyCount);
+          //fprintf(fp, "PropertyCount = %u\n", info->PropertyCount);
             for (ULONG i = 0, N = info->TopLevelPropertyCount; i < N; ++i) {
                 PrintEventProperty(fp, bufferAddr, info->EventPropertyInfoArray[i], 1);
             }

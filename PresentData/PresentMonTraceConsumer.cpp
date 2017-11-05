@@ -29,6 +29,8 @@ SOFTWARE.
 #include "TraceConsumer.hpp"
 #include "DxgkrnlEventStructs.hpp"
 
+using namespace std;
+
 PresentEvent::PresentEvent(EVENT_HEADER const& hdr, ::Runtime runtime)
     : QpcTime(*(uint64_t*) &hdr.TimeStamp)
     , SwapChainAddress(0)
@@ -109,6 +111,15 @@ void HandleDXGIEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 void HandleD3D11Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 {
     auto const& hdr = pEventRecord->EventHeader;
+    
+    if (0)
+    {
+        fprintf(stderr, "Id: %d, Opcode: %d\n", hdr.EventDescriptor.Id, hdr.EventDescriptor.Opcode);
+        bool result = true;
+        result = GetEventData<bool>(pEventRecord, L"WTF");
+        (result);
+    }
+
     switch (hdr.EventDescriptor.Id)
     {
     case 0:break;
@@ -116,12 +127,127 @@ void HandleD3D11Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     (pmConsumer);
 }
 
+struct MarkerInfo
+{
+    uint64_t APISequenceNumber;
+    uint32_t Metadata;
+    string Data;
+};
+
+struct CommandListInfo
+{
+    uint64_t pID3D12Device;
+    uint64_t pID3D12CommandList;
+    uint64_t SequenceNumber;
+    uint32_t type;
+};
+
+struct FenceInfo
+{
+    uint64_t pID3D12Device;
+    uint64_t pID3D12Fence;
+    uint64_t pDXGKFence;
+    bool isStart;
+};
+
+struct NameInfo
+{
+    uint64_t pObject;
+    string OldDebugObjectName;
+    string NewDebugObjectName;
+};
+
+// TODO: refactor into GetEventData()
+template <typename T>
+bool GetEventDataEx(EVENT_RECORD* pEventRecord, wchar_t const* name, T* out, ULONG dataSize)
+{
+    PROPERTY_DATA_DESCRIPTOR descriptor;
+    descriptor.PropertyName = (ULONGLONG)name;
+    descriptor.ArrayIndex = ULONG_MAX;
+
+    auto status = TdhGetProperty(pEventRecord, 0, nullptr, 1, &descriptor, dataSize, (BYTE*)out);
+    if (status != ERROR_SUCCESS) {
+        fprintf(stderr, "error: could not get event %ls property (error=%u).\n", name, status);
+        PrintEventInformation(stderr, pEventRecord);
+        return false;
+    }
+
+    return true;
+}
+
 void HandleD3D12Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 {
+    enum {
+        Device_Start = 3,
+        Device_Stop = 4,
+        Marker_Info = 38,
+        CommandQueue_Start = 47,
+        CommandQueue_Stop = 48,
+        CommandList_Info = 52,
+        Name_Info = 55,
+        Fence_Start = 57,
+        Fence_Stop = 58,
+        GraphicsPipelineState_Start = 63,
+        GraphicsPipelineState_Stop = 64,
+        RootSignature_Start = 69,
+        RootSignature_Stop = 70,
+        Heap_Start = 72,
+        Heap_Stop = 73,
+        Resource_Start = 91,
+        Resource_Stop = 92,
+        AllocationInfo_Info = 94,
+        CommandAllocatorUnacquire_Info = 95,
+    };
     auto const& hdr = pEventRecord->EventHeader;
-    switch (hdr.EventDescriptor.Id)
+    //fprintf(stderr, "Id: %d, Opcode: %d\n", hdr.EventDescriptor.Id, hdr.EventDescriptor.Opcode);
+    bool result = true;
+    auto id = hdr.EventDescriptor.Id;
+    switch (id)
     {
-    case 0:break;
+    case CommandList_Info:
+    {
+        CommandListInfo args;
+        result = GetEventData(pEventRecord, L"pID3D12Device", &args.pID3D12Device);
+        result = GetEventData(pEventRecord, L"pID3D12CommandList", &args.pID3D12CommandList);
+        result = GetEventData(pEventRecord, L"SequenceNumber", &args.SequenceNumber);
+        result = GetEventData(pEventRecord, L"type", &args.type);
+        
+        break;
+    }
+    case Name_Info:
+    {
+        NameInfo args;
+        uint32_t CchOldDebugObjectName;
+        uint32_t CchNewDebugObjectName;
+        result = GetEventData(pEventRecord, L"pObject", &args.pObject);
+        result = GetEventData(pEventRecord, L"CchOldDebugObjectName", &CchOldDebugObjectName);
+        result = GetEventData(pEventRecord, L"OldDebugObjectName", &args.OldDebugObjectName);
+        result = GetEventData(pEventRecord, L"CchNewDebugObjectName", &CchNewDebugObjectName);
+        result = GetEventData(pEventRecord, L"NewDebugObjectName", &args.NewDebugObjectName);
+        break;
+    }
+    case Fence_Start:
+    case Fence_Stop:
+    {
+        FenceInfo args;
+        result = GetEventData(pEventRecord, L"pID3D12Device", &args.pID3D12Device);
+        result = GetEventData(pEventRecord, L"pID3D12Fence", &args.pID3D12Fence);
+        result = GetEventData(pEventRecord, L"pDXGKFence", &args.pDXGKFence);
+        args.isStart = (id == Fence_Start);
+        break;
+    }
+    case Marker_Info:
+    {
+        MarkerInfo args;
+        uint32_t DataSize;
+        result = GetEventData(pEventRecord, L"APISequenceNumber", &args.APISequenceNumber);
+        result = GetEventData(pEventRecord, L"Metadata", &args.Metadata);
+        result = GetEventData(pEventRecord, L"DataSize", &DataSize);
+        //args.Data.resize(DataSize);
+        result = GetEventData(pEventRecord, L"Data", &args.Data);
+
+        break;
+    }
     }
     (pmConsumer);
 }

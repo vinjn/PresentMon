@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <generated/version.h>
+//#include <generated/version.h>
 #include <stdio.h>
 
 #include "CommandLine.hpp"
@@ -248,7 +248,7 @@ void PrintHelp()
         "    -verbose                   Adds additional data to output not relevant to normal usage.\n"
         "    -dont_restart_as_admin     Don't try to elevate privilege.\n"
         "    -no_top                    Don't display active swap chains in the console window.\n",
-        PRESENT_MON_VERSION
+        ""
         );
 }
 
