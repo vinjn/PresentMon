@@ -273,65 +273,87 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     bool result = true;
 
     uint64_t EventTime = *(uint64_t*)&hdr.TimeStamp;
-
-    switch (hdr.EventDescriptor.Id)
+    auto id = hdr.EventDescriptor.Id;
+    switch (id)
     {
     case dxgk::HistoryBuffer:
     {
-        DxgkHistoryBufferArgs Args = {};
-        result = GetEventData(pEventRecord, L"hContext", &Args.hContext);
-        result = GetEventData(pEventRecord, L"RenderCbSequence", &Args.RenderCbSequence);
-        result = GetEventData(pEventRecord, L"DmaSubmissionSequence", &Args.DmaSubmissionSequence);
-        result = GetEventData(pEventRecord, L"Precision", &Args.Precision);
-        result = GetEventData(pEventRecord, L"HistoryBufferSize", &Args.HistoryBufferSize);
-        Args.HistoryBuffer.resize(Args.HistoryBufferSize);
-        result = GetEventDataEx(pEventRecord, L"HistoryBuffer", Args.HistoryBuffer.data(), Args.HistoryBufferSize);
+        DxgkHistoryBufferArgs args = {};
+        args.pEventHeader = &hdr;
+        result = GetEventData(pEventRecord, L"hContext", &args.hContext);
+        result = GetEventData(pEventRecord, L"RenderCbSequence", &args.RenderCbSequence);
+        result = GetEventData(pEventRecord, L"DmaSubmissionSequence", &args.DmaSubmissionSequence);
+        result = GetEventData(pEventRecord, L"Precision", &args.Precision);
+        result = GetEventData(pEventRecord, L"HistoryBufferSize", &args.HistoryBufferSize);
+        args.HistoryBuffer.resize(args.HistoryBufferSize / 8);
+        result = GetEventDataEx(pEventRecord, L"HistoryBuffer", args.HistoryBuffer.data(), args.HistoryBufferSize);
 
+        break;
+    }
+    case dxgk::ContextStart:
+    case dxgk::ContextStop:
+    {
+        ContextStartArgs args = {};
+        args.pEventHeader = &hdr;
+        result = GetEventData(pEventRecord, L"hDevice", &args.hDevice);
+        result = GetEventData(pEventRecord, L"NodeOrdinal", &args.NodeOrdinal);
+        result = GetEventData(pEventRecord, L"EngineAffinity", &args.EngineAffinity);
+        result = GetEventData(pEventRecord, L"DmaBufferSize", &args.DmaBufferSize);
+        result = GetEventData(pEventRecord, L"DmaBufferSegmentSet", &args.DmaBufferSegmentSet);
+        result = GetEventData(pEventRecord, L"DmaBufferPrivateDataSize", &args.DmaBufferPrivateDataSize);
+        result = GetEventData(pEventRecord, L"AllocationListSize", &args.AllocationListSize);
+        result = GetEventData(pEventRecord, L"PatchLocationListSize", &args.PatchLocationListSize);
+        result = GetEventData(pEventRecord, L"Flags", &args.Flags);
+        result = GetEventData(pEventRecord, L"hContext", &args.hContext);
+        result = GetEventData(pEventRecord, L"ContextHandle", &args.ContextHandle);
+        result = GetEventData(pEventRecord, L"ParentDxgContext", &args.ParentDxgContext);
+
+        args.isStart = (id == dxgk::ContextStart);
         break;
     }
     case dxgk::Flip:
     case dxgk::FlipMultiPlaneOverlay:
     {
-        DxgkFlipEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.FlipInterval = -1;
+        DxgkFlipEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.FlipInterval = -1;
         if (hdr.EventDescriptor.Id == dxgk::Flip) {
-            Args.FlipInterval = GetEventData<uint32_t>(pEventRecord, L"FlipInterval");
-            Args.MMIO = GetEventData<BOOL>(pEventRecord, L"MMIOFlip") != 0;
+            args.FlipInterval = GetEventData<uint32_t>(pEventRecord, L"FlipInterval");
+            args.MMIO = GetEventData<BOOL>(pEventRecord, L"MMIOFlip") != 0;
         }
         else {
-            Args.MMIO = true; // All MPO flips are MMIO
+            args.MMIO = true; // All MPO flips are MMIO
         }
-        pmConsumer->HandleDxgkFlip(Args);
+        pmConsumer->HandleDxgkFlip(args);
         break;
     }
     case dxgk::QueuePacketStart:
     {
-        DxgkQueueSubmitEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.PacketType = GetEventData<DxgKrnl_QueueSubmit_Type>(pEventRecord, L"PacketType");
-        Args.SubmitSequence = GetEventData<uint32_t>(pEventRecord, L"SubmitSequence");
-        Args.Present = GetEventData<BOOL>(pEventRecord, L"bPresent") != 0;
-        Args.Context = GetEventData<uint64_t>(pEventRecord, L"hContext");
-        Args.SupportsDxgkPresentEvent = true;
-        pmConsumer->HandleDxgkQueueSubmit(Args);
+        DxgkQueueSubmitEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.PacketType = GetEventData<DxgKrnl_QueueSubmit_Type>(pEventRecord, L"PacketType");
+        args.SubmitSequence = GetEventData<uint32_t>(pEventRecord, L"SubmitSequence");
+        args.Present = GetEventData<BOOL>(pEventRecord, L"bPresent") != 0;
+        args.Context = GetEventData<uint64_t>(pEventRecord, L"hContext");
+        args.SupportsDxgkPresentEvent = true;
+        pmConsumer->HandleDxgkQueueSubmit(args);
         break;
     }
     case dxgk::QueuePacketStop:
     {
-        DxgkQueueCompleteEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.SubmitSequence = GetEventData<uint32_t>(pEventRecord, L"SubmitSequence");
-        pmConsumer->HandleDxgkQueueComplete(Args);
+        DxgkQueueCompleteEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.SubmitSequence = GetEventData<uint32_t>(pEventRecord, L"SubmitSequence");
+        pmConsumer->HandleDxgkQueueComplete(args);
         break;
     }
     case dxgk::MMIOFlip:
     {
-        DxgkMMIOFlipEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.FlipSubmitSequence = GetEventData<uint32_t>(pEventRecord, L"FlipSubmitSequence");
-        Args.Flags = GetEventData<DxgKrnl_MMIOFlip_Flags>(pEventRecord, L"Flags");
-        pmConsumer->HandleDxgkMMIOFlip(Args);
+        DxgkMMIOFlipEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.FlipSubmitSequence = GetEventData<uint32_t>(pEventRecord, L"FlipSubmitSequence");
+        args.Flags = GetEventData<DxgKrnl_MMIOFlip_Flags>(pEventRecord, L"Flags");
+        pmConsumer->HandleDxgkMMIOFlip(args);
         break;
     }
     case dxgk::MMIOFlipMultiPlaneOverlay:
@@ -384,10 +406,10 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     {
         auto FlipFenceId = GetEventData<uint64_t>(pEventRecord, L"FlipFenceId");
 
-        DxgkVSyncDPCEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.FlipSubmitSequence = (uint32_t)(FlipFenceId >> 32u);
-        pmConsumer->HandleDxgkVSyncDPC(Args);
+        DxgkVSyncDPCEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.FlipSubmitSequence = (uint32_t)(FlipFenceId >> 32u);
+        pmConsumer->HandleDxgkVSyncDPC(args);
         break;
     }
     case dxgk::Present:
@@ -424,33 +446,33 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     case dxgk::PresentHistoryDetailedStart:
     case dxgk::PresentHistoryStart:
     {
-        DxgkSubmitPresentHistoryEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.Token = GetEventData<uint64_t>(pEventRecord, L"Token");
-        Args.TokenData = GetEventData<uint64_t>(pEventRecord, L"TokenData");
+        DxgkSubmitPresentHistoryEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.Token = GetEventData<uint64_t>(pEventRecord, L"Token");
+        args.TokenData = GetEventData<uint64_t>(pEventRecord, L"TokenData");
         auto KMTPresentModel = GetEventData<D3DKMT_PRESENT_MODEL>(pEventRecord, L"Model");
-        Args.KnownPresentMode = D3DKMT_TokenModel_ToPresentMode(KMTPresentModel);
+        args.KnownPresentMode = D3DKMT_TokenModel_ToPresentMode(KMTPresentModel);
         if (KMTPresentModel != D3DKMT_PM_REDIRECTED_GDI)
         {
-            pmConsumer->HandleDxgkSubmitPresentHistoryEventArgs(Args);
+            pmConsumer->HandleDxgkSubmitPresentHistoryEventArgs(args);
         }
         break;
     }
     case dxgk::PresentHistory:
     {
-        DxgkPropagatePresentHistoryEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.Token = GetEventData<uint64_t>(pEventRecord, L"Token");
-        pmConsumer->HandleDxgkPropagatePresentHistoryEventArgs(Args);
+        DxgkPropagatePresentHistoryEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.Token = GetEventData<uint64_t>(pEventRecord, L"Token");
+        pmConsumer->HandleDxgkPropagatePresentHistoryEventArgs(args);
         break;
     }
     case dxgk::Blit:
     {
-        DxgkBltEventArgs Args = {};
-        Args.pEventHeader = &hdr;
-        Args.Hwnd = GetEventData<uint64_t>(pEventRecord, L"hwnd");
-        Args.Present = GetEventData<uint32_t>(pEventRecord, L"bRedirectedPresent") != 0;
-        pmConsumer->HandleDxgkBlt(Args);
+        DxgkBltEventArgs args = {};
+        args.pEventHeader = &hdr;
+        args.Hwnd = GetEventData<uint64_t>(pEventRecord, L"hwnd");
+        args.Present = GetEventData<uint32_t>(pEventRecord, L"bRedirectedPresent") != 0;
+        pmConsumer->HandleDxgkBlt(args);
         break;
     }
     }

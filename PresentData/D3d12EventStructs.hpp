@@ -40,6 +40,18 @@ struct RuntimeMarkerArgs
     std::vector<uint8_t> Data;
 };
 
+struct RuntimeMarker41Args
+{
+    uint64_t pID3D12CommandQueue;
+    uint32_t ContextCount;
+    std::vector<uint32_t> Contexts; // ContextCount
+    uint32_t LoopIteration;
+    uint32_t SubmitCommandCBSequence;
+    uint32_t FirstAPISequenceNumberHigh;
+    uint32_t CompletedAPISequenceNumberSize;
+    std::vector<uint32_t> CompletedAPISequenceNumber; // CompletedAPISequenceNumberSize
+};
+
 struct FenceStartArgs
 {
     uint64_t pID3D12Device;

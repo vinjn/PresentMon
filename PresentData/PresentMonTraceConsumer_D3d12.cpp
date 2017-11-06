@@ -111,6 +111,38 @@ void HandleD3D12Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         result = GetEventData(pEventRecord, L"NewDebugObjectName", &args.NewDebugObjectName);
         break;
     }
+#if 0
+    case RuntimeMarker:
+    {
+        d3d12event::RuntimeMarkerArgs args = {};
+        result = GetEventData(pEventRecord, L"CPUFrequency", &args.CPUFrequency);
+        result = GetEventData(pEventRecord, L"FirstAPISequenceNumber", &args.FirstAPISequenceNumber);
+        result = GetEventData(pEventRecord, L"pID3D12CommandList", &args.pID3D12CommandList);
+        result = GetEventData(pEventRecord, L"CPUTimeHigh", &args.CPUTimeHigh);
+        result = GetEventData(pEventRecord, L"ThreadIDCount", &args.ThreadIDCount);
+        args.ThreadIDs.resize(args.ThreadIDCount);
+        result = GetEventDataEx(pEventRecord, L"ThreadIDs", args.ThreadIDs.data(), args.ThreadIDCount * sizeof(args.ThreadIDs[0]));
+        result = GetEventData(pEventRecord, L"DataSize", &args.DataSize);
+        args.Data.resize(args.DataSize);
+        result = GetEventDataEx(pEventRecord, L"Data", args.Data.data(), args.DataSize);
+        break;
+    }
+#endif
+    case RuntimeMarker41:
+    {
+        d3d12event::RuntimeMarker41Args args = {};
+        result = GetEventData(pEventRecord, L"pID3D12CommandQueue", &args.pID3D12CommandQueue);
+        result = GetEventData(pEventRecord, L"ContextCount", &args.ContextCount);
+        args.Contexts.resize(args.ContextCount);
+        result = GetEventDataEx(pEventRecord, L"Contexts", args.Contexts.data(), args.ContextCount * sizeof(args.Contexts[0]));
+        result = GetEventData(pEventRecord, L"LoopIteration", &args.LoopIteration);
+        result = GetEventData(pEventRecord, L"SubmitCommandCBSequence", &args.SubmitCommandCBSequence);
+        result = GetEventData(pEventRecord, L"FirstAPISequenceNumberHigh", &args.FirstAPISequenceNumberHigh);
+        result = GetEventData(pEventRecord, L"CompletedAPISequenceNumberSize", &args.CompletedAPISequenceNumberSize);
+        args.CompletedAPISequenceNumber.resize(args.CompletedAPISequenceNumberSize);
+        result = GetEventDataEx(pEventRecord, L"CompletedAPISequenceNumber", args.CompletedAPISequenceNumber.data(), args.CompletedAPISequenceNumberSize * sizeof(args.CompletedAPISequenceNumber[0]));
+        break;
+    }
     case FenceStart:
     case FenceStop:
     {

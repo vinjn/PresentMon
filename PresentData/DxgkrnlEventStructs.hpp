@@ -29,7 +29,31 @@ struct DxgkHistoryBufferArgs : DxgkEventBase
     uint32_t DmaSubmissionSequence;
     uint32_t Precision;
     uint32_t HistoryBufferSize;
-    std::vector<uint8_t> HistoryBuffer;
+    std::vector<uint64_t> HistoryBuffer; // timestamp is 64bit (8 bytes), size = HistoryBufferSize / 8
+};
+
+enum class ContextFlags {
+    SystemContext = 0x1,
+    PagingContext = 0x1,
+    CompanionContext = 0x1,
+};
+
+struct ContextStartArgs : DxgkEventBase
+{
+    uint64_t hDevice;
+    uint32_t NodeOrdinal;
+    uint32_t EngineAffinity;
+    uint32_t DmaBufferSize;
+    uint32_t DmaBufferSegmentSet;
+    uint32_t DmaBufferPrivateDataSize;
+    uint32_t AllocationListSize;
+    uint32_t PatchLocationListSize;
+    ContextFlags Flags;
+    uint64_t hContext;
+    uint64_t ContextHandle;
+    uint64_t ParentDxgContext;
+
+    bool isStart;
 };
 
 // A QueueSubmit can be many types, but these are interesting for present.
