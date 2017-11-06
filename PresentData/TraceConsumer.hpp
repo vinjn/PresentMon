@@ -30,13 +30,13 @@ SOFTWARE.
 void PrintEventInformation(FILE* fp, EVENT_RECORD* pEventRecord);
 
 template <typename T>
-bool GetEventData(EVENT_RECORD* pEventRecord, wchar_t const* name, T* out)
+bool GetEventDataEx(EVENT_RECORD* pEventRecord, wchar_t const* name, T* out, ULONG propertySize)
 {
     PROPERTY_DATA_DESCRIPTOR descriptor;
-    descriptor.PropertyName = (ULONGLONG) name;
+    descriptor.PropertyName = (ULONGLONG)name;
     descriptor.ArrayIndex = ULONG_MAX;
 
-    auto status = TdhGetProperty(pEventRecord, 0, nullptr, 1, &descriptor, sizeof(T), (BYTE*) out);
+    auto status = TdhGetProperty(pEventRecord, 0, nullptr, 1, &descriptor, propertySize, (BYTE*)out);
     if (status != ERROR_SUCCESS) {
         fprintf(stderr, "error: could not get event %ls property (error=%u).\n", name, status);
         PrintEventInformation(stderr, pEventRecord);
@@ -44,6 +44,12 @@ bool GetEventData(EVENT_RECORD* pEventRecord, wchar_t const* name, T* out)
     }
 
     return true;
+}
+
+template <typename T>
+bool GetEventData(EVENT_RECORD* pEventRecord, wchar_t const* name, T* out)
+{
+    return GetEventDataEx(pEventRecord, name, out, sizeof(T));
 }
 
 template <typename T>

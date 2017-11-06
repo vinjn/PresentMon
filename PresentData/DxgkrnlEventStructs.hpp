@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 // First, structures that can be produced either by processing legacy events
 // or modern manifest-based events.
 
@@ -18,6 +20,16 @@ struct DxgkFlipEventArgs : DxgkEventBase
 {
     int32_t FlipInterval;
     bool MMIO;
+};
+
+struct DxgkHistoryBufferArgs : DxgkEventBase
+{
+    uint64_t hContext;
+    uint32_t RenderCbSequence;
+    uint32_t DmaSubmissionSequence;
+    uint32_t Precision;
+    uint32_t HistoryBufferSize;
+    std::vector<uint8_t> HistoryBuffer;
 };
 
 // A QueueSubmit can be many types, but these are interesting for present.

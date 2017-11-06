@@ -22,7 +22,7 @@
     <ProjectGuid>{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>PresentData</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -158,6 +158,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="D3d11EventStructs.hpp" />
+    <ClInclude Include="D3d12EventStructs.hpp" />
     <ClInclude Include="DxgkrnlEventStructs.hpp" />
     <ClInclude Include="PresentMonTraceConsumer.hpp" />
     <ClInclude Include="SwapChainData.hpp" />
@@ -165,6 +167,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PresentMonTraceConsumer.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_D3d11.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_D3d12.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_DWM.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_Dxgk.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_Dxgk_Win7.cpp" />
     <ClCompile Include="SwapChainData.cpp" />
     <ClCompile Include="TraceConsumer.cpp" />
   </ItemGroup>

@@ -5,10 +5,17 @@
     <ClInclude Include="SwapChainData.hpp" />
     <ClInclude Include="TraceConsumer.hpp" />
     <ClInclude Include="DxgkrnlEventStructs.hpp" />
+    <ClInclude Include="D3d12EventStructs.hpp" />
+    <ClInclude Include="D3d11EventStructs.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PresentMonTraceConsumer.cpp" />
     <ClCompile Include="SwapChainData.cpp" />
     <ClCompile Include="TraceConsumer.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_D3d11.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_D3d12.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_Dxgk.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_DWM.cpp" />
+    <ClCompile Include="PresentMonTraceConsumer_Dxgk_Win7.cpp" />
   </ItemGroup>
 </Project>
