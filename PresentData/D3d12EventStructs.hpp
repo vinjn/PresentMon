@@ -19,6 +19,7 @@ struct CommandListStartArgs
     uint64_t pID3D12CommandList;
     uint64_t SequenceNumber;
     uint32_t type;
+    bool isStart;
 };
 
 struct ExecuteCommandListStartArgs

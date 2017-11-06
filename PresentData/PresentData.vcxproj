@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="D3d11EventStructs.hpp" />
     <ClInclude Include="D3d12EventStructs.hpp" />
+    <ClInclude Include="DxgkEventEnum.h" />
     <ClInclude Include="DxgkrnlEventStructs.hpp" />
     <ClInclude Include="PresentMonTraceConsumer.hpp" />
     <ClInclude Include="SwapChainData.hpp" />

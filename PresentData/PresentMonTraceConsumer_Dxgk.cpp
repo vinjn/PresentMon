@@ -5,6 +5,7 @@
 #include "PresentMonTraceConsumer.hpp"
 #include "TraceConsumer.hpp"
 #include "DxgkrnlEventStructs.hpp"
+#include "DxgkEventEnum.h"
 
 using namespace std;
 
@@ -268,22 +269,6 @@ static PresentMode D3DKMT_TokenModel_ToPresentMode(D3DKMT_PRESENT_MODEL Model)
 
 void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 {
-    enum {
-        DxgKrnl_Flip = 168,
-        DxgKrnl_FlipMPO = 252,
-        DxgKrnl_QueueSubmit = 178,
-        DxgKrnl_QueueComplete = 180,
-        DxgKrnl_MMIOFlip = 116,
-        DxgKrnl_MMIOFlipMPO = 259,
-        DxgKrnl_VSyncDPC = 17,
-        DxgKrnl_Present = 184,
-        DxgKrnl_PresentHistoryDetailed = 215,
-        DxgKrnl_SubmitPresentHistory = 171,
-        DxgKrnl_PropagatePresentHistory = 172,
-        DxgKrnl_Blit = 166,
-        DXgKrnl_HistoryBuffer = 263,
-    };
-
     auto const& hdr = pEventRecord->EventHeader;
     bool result = true;
 
@@ -291,7 +276,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 
     switch (hdr.EventDescriptor.Id)
     {
-    case DXgKrnl_HistoryBuffer:
+    case dxgk::HistoryBuffer:
     {
         DxgkHistoryBufferArgs Args = {};
         result = GetEventData(pEventRecord, L"hContext", &Args.hContext);
@@ -304,13 +289,13 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 
         break;
     }
-    case DxgKrnl_Flip:
-    case DxgKrnl_FlipMPO:
+    case dxgk::Flip:
+    case dxgk::FlipMultiPlaneOverlay:
     {
         DxgkFlipEventArgs Args = {};
         Args.pEventHeader = &hdr;
         Args.FlipInterval = -1;
-        if (hdr.EventDescriptor.Id == DxgKrnl_Flip) {
+        if (hdr.EventDescriptor.Id == dxgk::Flip) {
             Args.FlipInterval = GetEventData<uint32_t>(pEventRecord, L"FlipInterval");
             Args.MMIO = GetEventData<BOOL>(pEventRecord, L"MMIOFlip") != 0;
         }
@@ -320,7 +305,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         pmConsumer->HandleDxgkFlip(Args);
         break;
     }
-    case DxgKrnl_QueueSubmit:
+    case dxgk::QueuePacketStart:
     {
         DxgkQueueSubmitEventArgs Args = {};
         Args.pEventHeader = &hdr;
@@ -332,7 +317,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         pmConsumer->HandleDxgkQueueSubmit(Args);
         break;
     }
-    case DxgKrnl_QueueComplete:
+    case dxgk::QueuePacketStop:
     {
         DxgkQueueCompleteEventArgs Args = {};
         Args.pEventHeader = &hdr;
@@ -340,7 +325,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         pmConsumer->HandleDxgkQueueComplete(Args);
         break;
     }
-    case DxgKrnl_MMIOFlip:
+    case dxgk::MMIOFlip:
     {
         DxgkMMIOFlipEventArgs Args = {};
         Args.pEventHeader = &hdr;
@@ -349,7 +334,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         pmConsumer->HandleDxgkMMIOFlip(Args);
         break;
     }
-    case DxgKrnl_MMIOFlipMPO:
+    case dxgk::MMIOFlipMultiPlaneOverlay:
     {
         // See above for more info about this packet.
         // Note: Event does not exist on Win7
@@ -395,7 +380,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 
         break;
     }
-    case DxgKrnl_VSyncDPC:
+    case dxgk::VSyncDPC:
     {
         auto FlipFenceId = GetEventData<uint64_t>(pEventRecord, L"FlipFenceId");
 
@@ -405,7 +390,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         pmConsumer->HandleDxgkVSyncDPC(Args);
         break;
     }
-    case DxgKrnl_Present:
+    case dxgk::Present:
     {
         // This event is emitted at the end of the kernel present, before returning.
         // The presence of this event is used with blt presents to indicate that no
@@ -436,8 +421,8 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         }
         break;
     }
-    case DxgKrnl_PresentHistoryDetailed:
-    case DxgKrnl_SubmitPresentHistory:
+    case dxgk::PresentHistoryDetailedStart:
+    case dxgk::PresentHistoryStart:
     {
         DxgkSubmitPresentHistoryEventArgs Args = {};
         Args.pEventHeader = &hdr;
@@ -451,7 +436,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         }
         break;
     }
-    case DxgKrnl_PropagatePresentHistory:
+    case dxgk::PresentHistory:
     {
         DxgkPropagatePresentHistoryEventArgs Args = {};
         Args.pEventHeader = &hdr;
@@ -459,7 +444,7 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
         pmConsumer->HandleDxgkPropagatePresentHistoryEventArgs(Args);
         break;
     }
-    case DxgKrnl_Blit:
+    case dxgk::Blit:
     {
         DxgkBltEventArgs Args = {};
         Args.pEventHeader = &hdr;
